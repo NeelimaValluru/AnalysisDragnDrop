@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "nodes": {
+    "load": {
+      "id": "load",
+      "node_type": "data_loader",
+      "label": "Load CSV",
+      "description": "Load data from CSV file",
+      "parameters": {
+        "file_path": {
+          "name": "file_path",
+          "param_type": "file",
+          "default_value": null,
+          "value": "data.csv",
+          "description": "Local path or URI (file://, http(s), s3://, gs://) of the CSV",
+          "options": []
+        },
+        "delimiter": {
+          "name": "delimiter",
+          "param_type": "string",
+          "default_value": ",",
+          "value": null,
+          "description": "Delimiter for CSV files",
+          "options": []
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "metadata": {
+        "file_format": "csv"
+      }
+    },
+    "cluster": {
+      "id": "cluster",
+      "node_type": "analyzer",
+      "label": "Clustering",
+      "description": "Perform clustering analysis",
+      "parameters": {
+        "algorithm": {
+          "name": "algorithm",
+          "param_type": "dropdown",
+          "default_value": "kmeans",
+          "value": "kmeans",
+          "description": "Clustering algorithm",
+          "options": [
+            "kmeans",
+            "dbscan",
+            "hierarchical"
+          ]
+        },
+        "n_clusters": {
+          "name": "n_clusters",
+          "param_type": "number",
+          "default_value": 3,
+          "value": 3,
+          "description": "Number of clusters",
+          "options": []
+        },
+        "eps": {
+          "name": "eps",
+          "param_type": "number",
+          "default_value": 0.5,
+          "value": null,
+          "description": "DBSCAN neighborhood radius",
+          "options": []
+        },
+        "min_samples": {
+          "name": "min_samples",
+          "param_type": "number",
+          "default_value": 5,
+          "value": null,
+          "description": "DBSCAN minimum samples per cluster",
+          "options": []
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "metadata": {
+        "analyzer_type": "clustering"
+      }
+    }
+  },
+  "edges": [
+    {
+      "source": "load",
+      "source_port": "output",
+      "target": "cluster",
+      "target_port": "data"
+    }
+  ]
+}

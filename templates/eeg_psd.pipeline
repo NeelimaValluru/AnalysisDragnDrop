@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "nodes": {
+    "load": {
+      "id": "load",
+      "node_type": "data_loader",
+      "label": "Load EEG",
+      "description": "Load EEG (channels \u00d7 time). CSV, NumPy, EDF or FIF.",
+      "parameters": {
+        "file_path": {
+          "name": "file_path",
+          "param_type": "file",
+          "default_value": null,
+          "value": "eeg.csv",
+          "description": "Local path or URI (file://, http(s), s3://, gs://). .nwb files and BIDS roots are routed to SI/MNE readers",
+          "options": []
+        },
+        "file_format": {
+          "name": "file_format",
+          "param_type": "dropdown",
+          "default_value": "csv",
+          "value": "csv",
+          "description": "File format. EDF/FIF/NWB need MNE or SpikeInterface (pip install 'analysis-gui[eeg]' / '[spike]'). file_path may be a local path, file://, http(s), s3://, gs://",
+          "options": [
+            "csv",
+            "npy",
+            "edf",
+            "fif",
+            "nwb"
+          ]
+        },
+        "sampling_rate": {
+          "name": "sampling_rate",
+          "param_type": "number",
+          "default_value": 250.0,
+          "value": null,
+          "description": "Sampling rate in Hz (unused for spike times in seconds)",
+          "options": []
+        },
+        "delimiter": {
+          "name": "delimiter",
+          "param_type": "string",
+          "default_value": ",",
+          "value": null,
+          "description": "Delimiter for CSV files",
+          "options": []
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "metadata": {
+        "file_format": "csv",
+        "signal_type": "eeg"
+      }
+    },
+    "filter": {
+      "id": "filter",
+      "node_type": "preprocessor",
+      "label": "Neural Filter",
+      "description": "Band-pass and optional notch filter for EEG or LFP",
+      "parameters": {
+        "sampling_rate": {
+          "name": "sampling_rate",
+          "param_type": "number",
+          "default_value": 250.0,
+          "value": null,
+          "description": "Sampling rate in Hz",
+          "options": []
+        },
+        "low_hz": {
+          "name": "low_hz",
+          "param_type": "number",
+          "default_value": 1.0,
+          "value": null,
+          "description": "High-pass cutoff (Hz)",
+          "options": []
+        },
+        "high_hz": {
+          "name": "high_hz",
+          "param_type": "number",
+          "default_value": 40.0,
+          "value": null,
+          "description": "Low-pass cutoff (Hz)",
+          "options": []
+        },
+        "notch_hz": {
+          "name": "notch_hz",
+          "param_type": "number",
+          "default_value": 0.0,
+          "value": null,
+          "description": "Notch frequency in Hz (0 disables)",
+          "options": []
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "metadata": {
+        "processor_type": "neural_filter"
+      }
+    },
+    "psd": {
+      "id": "psd",
+      "node_type": "analyzer",
+      "label": "Neural PSD",
+      "description": "Welch power spectral density for EEG or LFP",
+      "parameters": {
+        "sampling_rate": {
+          "name": "sampling_rate",
+          "param_type": "number",
+          "default_value": 250.0,
+          "value": null,
+          "description": "Sampling rate in Hz",
+          "options": []
+        },
+        "nperseg": {
+          "name": "nperseg",
+          "param_type": "number",
+          "default_value": 256,
+          "value": null,
+          "description": "Welch window length (samples)",
+          "options": []
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "metadata": {
+        "analyzer_type": "neural_spectrum"
+      }
+    }
+  },
+  "edges": [
+    {
+      "source": "load",
+      "source_port": "output",
+      "target": "filter",
+      "target_port": "data"
+    },
+    {
+      "source": "filter",
+      "source_port": "output",
+      "target": "psd",
+      "target_port": "data"
+    }
+  ]
+}

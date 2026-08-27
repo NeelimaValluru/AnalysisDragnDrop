@@ -1,0 +1,13 @@
+{
+  // `npm test` needs JavaScript on disk, unlike `npm run compile` (esbuild) and
+  // `npm run typecheck` (no emit at all). Node's built-in test runner then runs
+  // the result, which keeps the unit tests free of Electron and of any
+  // dependency beyond what is already installed.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "src",
+    "outDir": "out",
+    "sourceMap": true
+  }
+}

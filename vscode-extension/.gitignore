@@ -1,0 +1,10 @@
+node_modules/
+dist/
+out/
+*.vsix
+.vscode-test/
+
+# The repo-root .gitignore excludes `.vscode/` everywhere. Re-include the
+# directory here so this extension's F5 launch config stays under version
+# control (a directory must be re-included before files inside it can be).
+!.vscode/

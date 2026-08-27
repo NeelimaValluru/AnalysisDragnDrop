@@ -1,0 +1,26 @@
+{
+  // No "comments" entry on purpose: .pipeline files are parsed by Python's strict
+  // json module, so toggling a line comment would produce a file the CLI rejects.
+  "brackets": [
+    ["{", "}"],
+    ["[", "]"]
+  ],
+  "autoClosingPairs": [
+    { "open": "{", "close": "}", "notIn": ["string"] },
+    { "open": "[", "close": "]", "notIn": ["string"] },
+    { "open": "\"", "close": "\"", "notIn": ["string"] }
+  ],
+  "surroundingPairs": [
+    ["{", "}"],
+    ["[", "]"],
+    ["\"", "\""]
+  ],
+  "colorizedBracketPairs": [
+    ["{", "}"],
+    ["[", "]"]
+  ],
+  // No folding markers either: the usual `// #region` markers need the line
+  // comments this language does not have. Indentation-based folding is enough for
+  // pretty-printed JSON.
+  "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\[\\{\\]\\}\\:\\\"\\,\\s]+)"
+}

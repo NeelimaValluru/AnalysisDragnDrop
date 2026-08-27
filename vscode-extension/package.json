@@ -1,0 +1,228 @@
+{
+  "name": "analysis-gui",
+  "displayName": "Analysis GUI",
+  "description": "Visual pipeline builder for data analysis: validate .pipeline files and generate executable Python.",
+  "version": "0.0.1",
+  "publisher": "analysis-gui",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "vscode": "^1.110.0",
+    "node": ">=20.19.0"
+  },
+  "categories": [
+    "Data Science",
+    "Programming Languages",
+    "Visualization"
+  ],
+  "keywords": [
+    "pipeline",
+    "dag",
+    "data analysis",
+    "code generation"
+  ],
+  "main": "./dist/extension.js",
+  "extensionDependencies": [
+    "ms-python.python"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Analysis GUI runs the workspace's Python interpreter to validate pipelines and generate code, which executes code from the workspace."
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "Analysis GUI shells out to a local Python interpreter, which requires files on a real filesystem."
+    }
+  },
+  "activationEvents": [
+    "onLanguage:analysis-pipeline",
+    "workspaceContains:**/*.pipeline"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "analysis-pipeline",
+        "aliases": [
+          "Analysis Pipeline",
+          "analysis-pipeline"
+        ],
+        "extensions": [
+          ".pipeline"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "analysis-pipeline",
+        "scopeName": "source.json.analysis-pipeline",
+        "path": "./syntaxes/analysis-pipeline.tmLanguage.json"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "analysisGui.pipelineEditor",
+        "displayName": "Analysis Pipeline Canvas",
+        "selector": [
+          {
+            "filenamePattern": "*.pipeline"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "analysisGui.openCanvas",
+        "title": "Open Pipeline Canvas",
+        "category": "Analysis GUI",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "analysisGui.refreshNodeKinds",
+        "title": "Reload Node Kinds",
+        "category": "Analysis GUI",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "analysisGui.previewCode",
+        "title": "Preview Generated Python",
+        "category": "Analysis GUI",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "analysisGui.exportPython",
+        "title": "Export Pipeline to Python File",
+        "category": "Analysis GUI",
+        "icon": "$(export)"
+      },
+      {
+        "command": "analysisGui.runPipeline",
+        "title": "Run Pipeline",
+        "category": "Analysis GUI",
+        "icon": "$(play)",
+        "enablement": "resourceExtname == .pipeline"
+      },
+      {
+        "command": "analysisGui.validate",
+        "title": "Validate Pipeline",
+        "category": "Analysis GUI",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "analysisGui.launchGui",
+        "title": "Open in Analysis GUI Desktop App",
+        "category": "Analysis GUI",
+        "icon": "$(window)"
+      },
+        {
+          "command": "analysisGui.revealNodeSource",
+          "title": "Reveal Node Source",
+          "category": "Analysis GUI",
+          "icon": "$(go-to-file)"
+        },
+        {
+          "command": "analysisGui.discoverLibraryNodes",
+          "title": "Discover Library Nodes",
+          "category": "Analysis GUI",
+          "icon": "$(library)"
+        },
+        {
+          "command": "analysisGui.findSimilarCode",
+          "title": "Find Similar Code",
+          "category": "Analysis GUI",
+          "icon": "$(search)"
+        },
+        {
+          "command": "analysisGui.newFromTemplate",
+          "title": "New Pipeline from Template",
+          "category": "Analysis GUI",
+          "icon": "$(file-add)"
+        }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "analysisGui.openCanvas",
+          "when": "resourceExtname == .pipeline && activeCustomEditorId != analysisGui.pipelineEditor",
+          "group": "navigation@1"
+        },
+        {
+          "command": "analysisGui.previewCode",
+          "when": "resourceExtname == .pipeline",
+          "group": "navigation@2"
+        },
+        {
+          "command": "analysisGui.runPipeline",
+          "when": "resourceExtname == .pipeline",
+          "group": "navigation@3"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "analysisGui.openCanvas",
+          "when": "resourceExtname == .pipeline",
+          "group": "navigation"
+        },
+        {
+          "command": "analysisGui.launchGui",
+          "when": "resourceExtname == .pipeline",
+          "group": "navigation"
+        },
+        {
+          "command": "analysisGui.runPipeline",
+          "when": "resourceExtname == .pipeline",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Analysis GUI",
+      "properties": {
+        "analysisGui.pythonPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine-overridable",
+          "markdownDescription": "Python interpreter used to run `python -m analysis_gui.cli`. When set, this takes precedence over the interpreter selected by the [Python extension](command:python.setInterpreter); leave it empty — the default — to follow that selection instead. Supports `~` and `${workspaceFolder}`."
+        },
+        "analysisGui.autoPreviewCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh the generated Python preview when the pipeline changes."
+        },
+        "analysisGui.diagnostics.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Report pipeline validation problems in the Problems panel."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "npm run typecheck && npm run lint && node esbuild.js --production",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p src/webview/tsconfig.json",
+    "lint": "eslint src",
+    "test": "tsc -p tsconfig.test.json && node --test \"out/test/*.test.js\"",
+    "check:cli": "tsc -p tsconfig.test.json && node scripts/cli-contract-check.mjs",
+    "vscode:prepublish": "npm run package"
+  },
+  "dependencies": {
+    "@xyflow/react": "^12.11.3",
+    "jsonc-parser": "^3.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@types/vscode": "1.110.0",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.8.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.67.0"
+  }
+}

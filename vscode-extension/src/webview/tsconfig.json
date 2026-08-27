@@ -1,0 +1,24 @@
+{
+  // The webview is a browser bundle, so it needs the DOM lib the extension host
+  // config deliberately omits, and bundler module resolution rather than
+  // Node16. Keeping it as a separate project rather than widening the root
+  // config means extension-host code still cannot reach for `document` or
+  // `window` and have it typecheck.
+  //
+  // The filename is `tsconfig.json` rather than `tsconfig.webview.json` at the
+  // root on purpose: typescript-eslint's project service finds a file's project
+  // by walking up for `tsconfig.json`, so this is what makes `npm run lint`
+  // type-aware inside `src/webview/` without any extra ESLint configuration.
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    // No Node globals here: this code runs in a webview.
+    "types": []
+  },
+  // The root config excludes this directory; that exclusion is inherited
+  // through `extends` and has to be dropped here or the project has no inputs.
+  "exclude": [],
+  "include": ["."]
+}

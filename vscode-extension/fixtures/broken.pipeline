@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "nodes": {
+    "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa": {
+      "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "node_type": "data_loader",
+      "label": "Load CSV",
+      "description": "This node is fine.",
+      "parameters": {},
+      "position": [80, 120],
+      "metadata": {}
+    },
+    "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb": {
+      "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "node_type": "not_a_real_type",
+      "label": "Unknown Kind",
+      "description": "Triggers unknown_node_type.",
+      "parameters": {},
+      "position": [360, 120],
+      "metadata": {}
+    },
+    "cccccccc-cccc-4ccc-8ccc-cccccccccccc": {
+      "id": "this-id-does-not-match-the-key",
+      "node_type": "visualizer",
+      "label": "Mismatched Id",
+      "description": "Triggers node_id_mismatch.",
+      "parameters": {},
+      "position": [640, 120],
+      "metadata": {}
+    }
+  },
+  "edges": [
+    {
+      "source": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "source_port": null,
+      "target": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "target_port": null
+    },
+    {
+      "source": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "source_port": null,
+      "target": "ghost",
+      "target_port": null
+    },
+    {
+      "source": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "source_port": null,
+      "target": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "target_port": null
+    },
+    {
+      "source": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "source_port": null,
+      "target": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "target_port": null
+    },
+    ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "cccccccc-cccc-4ccc-8ccc-cccccccccccc"],
+    42
+  ]
+}

@@ -1,0 +1,214 @@
+{
+  "version": 1,
+  "nodes": {
+    "recording": {
+      "id": "recording",
+      "node_type": "data_loader",
+      "label": "SI Recording",
+      "description": "Load a SpikeInterface recording (binary, NWB, SpikeGLX, Open Ephys, Intan; other extractors via custom_format). Requires: pip install 'analysis-gui[spike]'",
+      "parameters": {
+        "file_path": {
+          "name": "file_path",
+          "param_type": "file",
+          "default_value": null,
+          "value": "recording.bin",
+          "description": "Recording file or folder (SpikeGLX/Open Ephys directory, NWB, binary, BIDS root, or URI)",
+          "options": []
+        },
+        "format": {
+          "name": "format",
+          "param_type": "dropdown",
+          "default_value": "binary",
+          "value": "binary",
+          "description": "Extractor to call. Other SI formats can be set via custom_format (suffix of read_<format>, e.g. blackrock)",
+          "options": [
+            "binary",
+            "nwb",
+            "spikeglx",
+            "openephys",
+            "intan",
+            "blackrock",
+            "neuralynx",
+            "mearec",
+            "bids"
+          ]
+        },
+        "custom_format": {
+          "name": "custom_format",
+          "param_type": "string",
+          "default_value": "",
+          "value": null,
+          "description": "Optional extractor suffix overriding format (read_<custom_format>)",
+          "options": []
+        },
+        "sampling_rate": {
+          "name": "sampling_rate",
+          "param_type": "number",
+          "default_value": 30000.0,
+          "value": null,
+          "description": "Sampling rate in Hz (binary extractor)",
+          "options": []
+        },
+        "num_channels": {
+          "name": "num_channels",
+          "param_type": "number",
+          "default_value": 0,
+          "value": null,
+          "description": "Channel count for binary (0 = omit, SI infers when possible)",
+          "options": []
+        },
+        "dtype": {
+          "name": "dtype",
+          "param_type": "string",
+          "default_value": "int16",
+          "value": null,
+          "description": "Sample dtype for binary recordings",
+          "options": []
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "metadata": {
+        "signal_type": "spike",
+        "backend": "spikeinterface",
+        "si_stage": "recording"
+      }
+    },
+    "preprocess": {
+      "id": "preprocess",
+      "node_type": "preprocessor",
+      "label": "SI Preprocess",
+      "description": "SpikeInterface preprocessing (bandpass_filter, highpass_filter, notch_filter, common_reference, whiten, phase_shift, blank_saturation, correct_motion). Requires: pip install 'analysis-gui[spike]'",
+      "parameters": {
+        "method": {
+          "name": "method",
+          "param_type": "dropdown",
+          "default_value": "bandpass_filter",
+          "value": null,
+          "description": "spikeinterface.preprocessing method",
+          "options": [
+            "bandpass_filter",
+            "highpass_filter",
+            "notch_filter",
+            "common_reference",
+            "whiten",
+            "phase_shift",
+            "blank_saturation",
+            "correct_motion"
+          ]
+        },
+        "freq_min": {
+          "name": "freq_min",
+          "param_type": "number",
+          "default_value": 300.0,
+          "value": null,
+          "description": "High-pass cutoff in Hz (bandpass/highpass)",
+          "options": []
+        },
+        "freq_max": {
+          "name": "freq_max",
+          "param_type": "number",
+          "default_value": 6000.0,
+          "value": null,
+          "description": "Low-pass cutoff in Hz (bandpass)",
+          "options": []
+        },
+        "notch_freq": {
+          "name": "notch_freq",
+          "param_type": "number",
+          "default_value": 3000.0,
+          "value": null,
+          "description": "Notch frequency in Hz",
+          "options": []
+        },
+        "notch_q": {
+          "name": "notch_q",
+          "param_type": "number",
+          "default_value": 30.0,
+          "value": null,
+          "description": "Notch filter Q",
+          "options": []
+        },
+        "reference": {
+          "name": "reference",
+          "param_type": "dropdown",
+          "default_value": "global",
+          "value": null,
+          "description": "common_reference mode",
+          "options": [
+            "global",
+            "single",
+            "local"
+          ]
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "metadata": {
+        "processor_type": "si_preprocess",
+        "signal_type": "spike",
+        "backend": "spikeinterface",
+        "si_stage": "preprocess"
+      }
+    },
+    "sort": {
+      "id": "sort",
+      "node_type": "analyzer",
+      "label": "SI Sort",
+      "description": "Run spikeinterface.sorters.run_sorter. Sorter binaries (GPU Kilosort, MATLAB, \u2026) are not vendored. Requires: pip install 'analysis-gui[spike]'",
+      "parameters": {
+        "sorter_name": {
+          "name": "sorter_name",
+          "param_type": "dropdown",
+          "default_value": "simple",
+          "value": "simple",
+          "description": "Name passed to run_sorter (simple is a threshold sorter)",
+          "options": [
+            "kilosort4",
+            "mountainsort5",
+            "spykingcircus2",
+            "tridesclous",
+            "herdingspikes",
+            "simple"
+          ]
+        },
+        "folder": {
+          "name": "folder",
+          "param_type": "string",
+          "default_value": "si_sorter_output",
+          "value": null,
+          "description": "Output folder for the sorter",
+          "options": []
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "metadata": {
+        "analyzer_type": "si_sort",
+        "signal_type": "spike",
+        "backend": "spikeinterface",
+        "si_stage": "sort"
+      }
+    }
+  },
+  "edges": [
+    {
+      "source": "recording",
+      "source_port": "output",
+      "target": "preprocess",
+      "target_port": "data"
+    },
+    {
+      "source": "preprocess",
+      "source_port": "output",
+      "target": "sort",
+      "target_port": "data"
+    }
+  ]
+}

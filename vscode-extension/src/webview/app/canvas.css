@@ -1,0 +1,898 @@
+/*
+ * Canvas styling.
+ *
+ * Every colour goes through a `var(--vscode-*, fallback)` pair. Inside VS Code
+ * the theme variables are injected on the document element, so the canvas
+ * follows the user's theme including high contrast; outside it — a browser
+ * page, a notebook output — the fallbacks give a readable dark surface with no
+ * VS Code dependency. That is the same portability rule the TypeScript follows,
+ * applied to the stylesheet.
+ *
+ * Family and port colours are instrument pigments: distinct enough to scan,
+ * muted enough not to compete with the data.
+ */
+
+:root {
+	--surface: var(--vscode-editor-background, #1e1e1e);
+	--surface-raised: var(--vscode-editorWidget-background, #252526);
+	--surface-sunken: var(--vscode-sideBar-background, #181818);
+	--ink: var(--vscode-editor-foreground, #d4d4d4);
+	--ink-dim: var(--vscode-descriptionForeground, #9d9d9d);
+	--line: var(--vscode-editorWidget-border, #3c3c3c);
+	--accent: var(--vscode-focusBorder, #007fd4);
+	--danger: var(--vscode-editorError-foreground, #f14c4c);
+	--warning: var(--vscode-editorWarning-foreground, #cca700);
+	--ok: var(--vscode-testing-iconPassed, #3fb950);
+	--grid-dot: var(--vscode-editorIndentGuide-background, rgba(255, 255, 255, 0.07));
+	--minimap-mask: color-mix(in srgb, var(--surface) 72%, transparent);
+
+	--family-loader: #3d7a7a;
+	--family-preprocessor: #8a7440;
+	--family-analyzer: #4a6d94;
+	--family-visualizer: #8a5a72;
+	--family-output: #6a6a78;
+	--family-llm-claude: #b56a3c;
+	--family-llm-gpt: #4e8a62;
+	--family-llm: #6a7a8a;
+	--family-neural-eeg: #4a78a8;
+	--family-neural-lfp: #3a8a7a;
+	--family-neural-spike: #b08a32;
+	--family-neural-calcium: #6a8a48;
+	--family-neural: #4a7a8a;
+	--family-spikeinterface: #6a5a88;
+	--family-custom: #6e6e6e;
+	--family-unknown: #5a5a5a;
+
+	--kind-any: #8a8a8a;
+	--kind-table: #4ec9b0;
+	--kind-series: #c586c0;
+	--kind-text: #ce9178;
+	--kind-eeg: #5b8ec9;
+	--kind-lfp: #3a9e8f;
+	--kind-spike: #c9a227;
+	--kind-calcium: #7cb87c;
+}
+
+html,
+body,
+#root {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background: var(--surface);
+	color: var(--ink);
+	font-family: var(--vscode-font-family, system-ui, sans-serif);
+	font-size: var(--vscode-font-size, 13px);
+	overflow: hidden;
+}
+
+.canvas {
+	display: grid;
+	grid-template-columns: 228px 1fr 292px;
+	height: 100%;
+}
+
+.canvas__surface {
+	position: relative;
+	min-width: 0;
+	border-inline: 1px solid var(--line);
+	background:
+		linear-gradient(180deg, color-mix(in srgb, var(--surface-sunken) 55%, var(--surface)) 0%, var(--surface) 28%);
+}
+
+.canvas__surface.is-stale {
+	opacity: 0.55;
+	filter: saturate(0.4);
+}
+
+.canvas__surface.is-rejecting {
+	box-shadow: inset 0 0 0 1px var(--danger);
+}
+
+.canvas__surface.is-rejecting .react-flow__handle-connecting:not(.react-flow__handle-valid) {
+	animation: reject-pulse 0.4s ease;
+}
+
+@keyframes reject-pulse {
+	0%,
+	100% {
+		box-shadow: 0 0 0 3px var(--danger);
+	}
+	50% {
+		box-shadow: 0 0 0 7px color-mix(in srgb, var(--danger) 55%, transparent);
+	}
+}
+
+/* ---- side panels -------------------------------------------------------- */
+
+.palette,
+.inspector {
+	overflow-y: auto;
+	padding: 10px 12px 16px;
+	background: var(--surface-raised);
+}
+
+.panel__title {
+	margin: 0 0 10px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	color: var(--ink-dim);
+}
+
+.panel__empty,
+.panel__hint {
+	margin: 8px 0;
+	color: var(--ink-dim);
+	font-size: 11px;
+	line-height: 1.5;
+}
+
+.palette__search {
+	display: block;
+	margin-bottom: 12px;
+}
+
+.palette__search-label {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+}
+
+.palette__search-input {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 5px 8px;
+	border: 1px solid var(--vscode-input-border, var(--line));
+	border-radius: 3px;
+	background: var(--vscode-input-background, #3c3c3c);
+	color: var(--vscode-input-foreground, #cccccc);
+	font: inherit;
+	font-size: 12px;
+}
+
+.palette__search-input:focus {
+	outline: 1px solid var(--accent);
+	outline-offset: -1px;
+}
+
+.palette__group {
+	margin: 0 0 8px;
+	padding: 4px 0 6px;
+	border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.palette__group--si {
+	margin-bottom: 10px;
+	padding: 6px 6px 8px;
+	border: 1px solid color-mix(in srgb, var(--family-spikeinterface) 55%, var(--line));
+	border-radius: 4px;
+	background:
+		repeating-linear-gradient(
+			90deg,
+			color-mix(in srgb, var(--family-spikeinterface) 28%, transparent) 0 2px,
+			transparent 2px 5px
+		)
+		left / 5px 100% no-repeat;
+	background-color: color-mix(in srgb, var(--family-spikeinterface) 8%, var(--surface-raised));
+}
+
+.palette__group-title {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0 0 4px;
+	padding: 2px 0;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--ink-dim);
+	font-family: var(--vscode-editor-font-family, monospace);
+	cursor: pointer;
+	list-style: none;
+}
+
+.palette__group-title::-webkit-details-marker {
+	display: none;
+}
+
+.palette__group-title::before {
+	content: '';
+	width: 0;
+	height: 0;
+	border-style: solid;
+	border-width: 4px 0 4px 6px;
+	border-color: transparent transparent transparent var(--ink-dim);
+	transform: rotate(90deg);
+}
+
+.palette__group:not([open]) .palette__group-title::before {
+	transform: rotate(0deg);
+}
+
+.palette__group-count {
+	margin-left: auto;
+	font-size: 9px;
+	font-weight: 500;
+	letter-spacing: 0;
+	text-transform: none;
+	color: var(--ink-dim);
+	opacity: 0.8;
+}
+
+.palette__item {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	width: 100%;
+	margin-bottom: 3px;
+	padding: 6px 8px;
+	border: 1px solid transparent;
+	border-left: 2px solid var(--item-accent, var(--line));
+	border-radius: 3px;
+	background: var(--vscode-button-secondaryBackground, #3a3d41);
+	color: var(--vscode-button-secondaryForeground, #ffffff);
+	font: inherit;
+	text-align: left;
+	cursor: grab;
+}
+
+.palette__item:hover:not(:disabled) {
+	border-color: var(--item-accent, var(--accent));
+}
+
+.palette__item:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.palette__item-text {
+	min-width: 0;
+	flex: 1;
+}
+
+.palette__item-label {
+	display: block;
+	font-weight: 500;
+}
+
+.palette__item-hint {
+	display: block;
+	margin-top: 2px;
+	font-size: 10px;
+	color: var(--ink-dim);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.family-glyph {
+	flex: none;
+	width: 14px;
+	height: 14px;
+	margin-top: 1px;
+	fill: currentColor;
+	stroke: none;
+	opacity: 0.9;
+}
+
+.family-glyph--stroke {
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.3;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.family-loader { --item-accent: var(--family-loader); --node-accent: var(--family-loader); }
+.family-preprocessor { --item-accent: var(--family-preprocessor); --node-accent: var(--family-preprocessor); }
+.family-analyzer { --item-accent: var(--family-analyzer); --node-accent: var(--family-analyzer); }
+.family-visualizer { --item-accent: var(--family-visualizer); --node-accent: var(--family-visualizer); }
+.family-output { --item-accent: var(--family-output); --node-accent: var(--family-output); }
+.family-llm-claude { --item-accent: var(--family-llm-claude); --node-accent: var(--family-llm-claude); }
+.family-llm-gpt { --item-accent: var(--family-llm-gpt); --node-accent: var(--family-llm-gpt); }
+.family-llm { --item-accent: var(--family-llm); --node-accent: var(--family-llm); }
+.family-neural-eeg { --item-accent: var(--family-neural-eeg); --node-accent: var(--family-neural-eeg); }
+.family-neural-lfp { --item-accent: var(--family-neural-lfp); --node-accent: var(--family-neural-lfp); }
+.family-neural-spike { --item-accent: var(--family-neural-spike); --node-accent: var(--family-neural-spike); }
+.family-neural-calcium { --item-accent: var(--family-neural-calcium); --node-accent: var(--family-neural-calcium); }
+.family-neural { --item-accent: var(--family-neural); --node-accent: var(--family-neural); }
+.family-spikeinterface { --item-accent: var(--family-spikeinterface); --node-accent: var(--family-spikeinterface); }
+.family-custom { --item-accent: var(--family-custom); --node-accent: var(--family-custom); }
+.family-unknown { --item-accent: var(--family-unknown); --node-accent: var(--family-unknown); }
+
+/* ---- inspector ---------------------------------------------------------- */
+
+.inspector__head {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin-bottom: 10px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid var(--line);
+	color: var(--node-accent, var(--ink));
+}
+
+.inspector__title {
+	margin: 0 0 3px;
+	text-transform: none;
+	letter-spacing: 0;
+	font-size: 13px;
+	color: var(--ink);
+}
+
+.inspector__badge {
+	display: inline-block;
+	padding: 1px 6px;
+	border: 1px solid var(--node-accent, var(--line));
+	border-radius: 2px;
+	font-size: 9px;
+	font-family: var(--vscode-editor-font-family, monospace);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--node-accent, var(--ink-dim));
+}
+
+.inspector__meta {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 2px 8px;
+	margin: 0 0 10px;
+	font-size: 11px;
+}
+
+.inspector__meta dt {
+	color: var(--ink-dim);
+}
+
+.inspector__meta dd {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.inspector__id {
+	font-size: 10px;
+}
+
+.inspector__description {
+	margin: 0 0 12px;
+	padding: 6px 8px;
+	border-left: 2px solid var(--line);
+	font-size: 11px;
+	color: var(--ink-dim);
+	line-height: 1.5;
+}
+
+.inspector__params {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.inspector__group-title {
+	margin: 0 0 8px;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--ink-dim);
+}
+
+.param {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	margin-bottom: 10px;
+}
+
+.param__name {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+	font-family: var(--vscode-editor-font-family, monospace);
+	font-size: 11px;
+}
+
+.param.is-overridden .param__name {
+	color: var(--accent);
+	font-weight: 600;
+}
+
+.param__reset {
+	border: none;
+	background: none;
+	padding: 0;
+	color: var(--vscode-textLink-foreground, #3794ff);
+	font: inherit;
+	font-size: 10px;
+	cursor: pointer;
+}
+
+.param__control {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 4px 6px;
+	border: 1px solid var(--vscode-input-border, var(--line));
+	border-radius: 2px;
+	background: var(--vscode-input-background, #3c3c3c);
+	color: var(--vscode-input-foreground, #cccccc);
+	font: inherit;
+}
+
+.param__control:focus {
+	outline: 1px solid var(--accent);
+	outline-offset: -1px;
+}
+
+.param__checkbox {
+	align-self: flex-start;
+}
+
+.param__hint,
+.param__default {
+	font-size: 10px;
+	color: var(--ink-dim);
+	line-height: 1.4;
+}
+
+.inspector__delete {
+	width: 100%;
+	margin-top: 16px;
+	padding: 5px;
+	border: 1px solid var(--danger);
+	border-radius: 2px;
+	background: transparent;
+	color: var(--danger);
+	font: inherit;
+	cursor: pointer;
+}
+
+.inspector__delete:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+/* ---- node card ---------------------------------------------------------- */
+
+.pipeline-node {
+	min-width: 188px;
+	border: 1px solid var(--line);
+	border-left: 3px solid var(--node-accent, var(--line));
+	border-radius: 4px;
+	background: color-mix(in srgb, var(--surface-raised) 92%, var(--node-accent, transparent));
+	color: var(--ink);
+	font-size: 11px;
+	box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.pipeline-node.is-si {
+	background-image: repeating-linear-gradient(
+		90deg,
+		color-mix(in srgb, var(--family-spikeinterface) 40%, transparent) 0 2px,
+		transparent 2px 5px
+	);
+	background-size: 5px 100%;
+	background-repeat: no-repeat;
+	background-position: left;
+	background-color: color-mix(in srgb, var(--family-spikeinterface) 10%, var(--surface-raised));
+}
+
+.pipeline-node.is-selected {
+	border-color: var(--node-accent, var(--accent));
+	box-shadow:
+		0 0 0 1px var(--node-accent, var(--accent)),
+		0 0 0 4px color-mix(in srgb, var(--node-accent, var(--accent)) 28%, transparent);
+}
+
+.pipeline-node.has-error {
+	border-color: var(--danger);
+}
+
+.pipeline-node.has-warning {
+	border-color: var(--warning);
+}
+
+.pipeline-node.is-run-pending {
+	opacity: 0.72;
+}
+
+.pipeline-node.is-run-running {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent);
+	animation: run-pulse 1.2s ease-in-out infinite;
+}
+
+.pipeline-node.is-run-ok {
+	border-color: color-mix(in srgb, var(--ok) 70%, var(--line));
+}
+
+.pipeline-node.is-run-error {
+	border-color: var(--danger);
+}
+
+@keyframes run-pulse {
+	0%,
+	100% {
+		box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+	}
+	50% {
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent);
+	}
+}
+
+.pipeline-node.is-unknown-kind {
+	border-style: dashed;
+}
+
+.pipeline-node__header {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	padding: 6px 8px 6px 10px;
+	border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+	color: var(--node-accent, var(--ink-dim));
+}
+
+.pipeline-node__heading {
+	min-width: 0;
+	flex: 1;
+}
+
+.pipeline-node__title {
+	display: block;
+	font-weight: 600;
+	color: var(--ink);
+}
+
+.pipeline-node__kind {
+	display: block;
+	margin-top: 1px;
+	font-size: 10px;
+	color: var(--ink-dim);
+}
+
+.pipeline-node__badge {
+	flex: none;
+	padding: 1px 5px;
+	border: 1px solid color-mix(in srgb, var(--node-accent, var(--line)) 70%, var(--line));
+	border-radius: 2px;
+	font-size: 8px;
+	font-family: var(--vscode-editor-font-family, monospace);
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--node-accent, var(--ink-dim));
+	white-space: nowrap;
+}
+
+.pipeline-node__mark {
+	flex: none;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 14px;
+	text-align: center;
+	color: var(--surface);
+}
+
+.pipeline-node__mark--error {
+	background: var(--danger);
+}
+
+.pipeline-node__mark--warning {
+	background: var(--warning);
+}
+
+.pipeline-node__run {
+	flex: none;
+	min-width: 14px;
+	height: 14px;
+	padding: 0 3px;
+	border-radius: 7px;
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 14px;
+	text-align: center;
+	color: var(--surface);
+}
+
+.pipeline-node__run--running {
+	background: var(--accent);
+}
+
+.pipeline-node__run--ok {
+	background: var(--ok);
+}
+
+.pipeline-node__run--error {
+	background: var(--danger);
+}
+
+.pipeline-node__ports {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 5px 0;
+}
+
+.pipeline-node__side {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	flex: 1;
+}
+
+.pipeline-node__side--out {
+	text-align: right;
+}
+
+.pipeline-port {
+	position: relative;
+	padding: 2px 10px;
+	line-height: 1.5;
+	white-space: nowrap;
+}
+
+.pipeline-port__label {
+	color: var(--ink-dim);
+	font-size: 10px;
+}
+
+.pipeline-port__required {
+	color: var(--danger);
+}
+
+.pipeline-port__kind {
+	display: inline-block;
+	margin-left: 5px;
+	padding: 0 4px;
+	border-radius: 2px;
+	font-size: 8px;
+	font-family: var(--vscode-editor-font-family, monospace);
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--port-kind, var(--kind-any));
+	background: color-mix(in srgb, var(--port-kind, var(--kind-any)) 16%, transparent);
+}
+
+.pipeline-node__side--out .pipeline-port__kind {
+	margin-left: 0;
+	margin-right: 5px;
+}
+
+.pipeline-node__overrides {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 5px 10px;
+	border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+	font-size: 10px;
+	color: var(--ink-dim);
+	font-family: var(--vscode-editor-font-family, monospace);
+}
+
+.pipeline-node__preview {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 220px;
+}
+
+/* ---- empty state -------------------------------------------------------- */
+
+.empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+	max-width: 520px;
+	padding: 12px 14px;
+	border: 1px solid var(--line);
+	border-radius: 4px;
+	background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+	box-shadow: 0 8px 24px color-mix(in srgb, #000 28%, transparent);
+}
+
+.empty-state__prompt {
+	margin: 0;
+	font-size: 12px;
+	color: var(--ink);
+}
+
+.empty-state__chips {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 6px;
+}
+
+.empty-state__chip {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	padding: 6px 10px;
+	border: 1px solid var(--line);
+	border-radius: 3px;
+	background: var(--surface);
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+.empty-state__chip:hover {
+	border-color: var(--accent);
+}
+
+.empty-state__chip-label {
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.empty-state__chip-hint {
+	font-size: 10px;
+	color: var(--ink-dim);
+}
+
+/* ---- React Flow overrides ----------------------------------------------- */
+
+.react-flow__handle.pipeline-port__handle {
+	width: 8px;
+	height: 8px;
+	border: 1px solid var(--surface);
+	background: var(--kind-any);
+}
+
+.react-flow__handle.kind-table { background: var(--kind-table); }
+.react-flow__handle.kind-series { background: var(--kind-series); }
+.react-flow__handle.kind-text { background: var(--kind-text); }
+.react-flow__handle.kind-eeg { background: var(--kind-eeg); }
+.react-flow__handle.kind-lfp { background: var(--kind-lfp); }
+.react-flow__handle.kind-spike { background: var(--kind-spike); }
+.react-flow__handle.kind-calcium { background: var(--kind-calcium); }
+
+.pipeline-port__kind.kind-table { color: var(--kind-table); background: color-mix(in srgb, var(--kind-table) 16%, transparent); }
+.pipeline-port__kind.kind-series { color: var(--kind-series); background: color-mix(in srgb, var(--kind-series) 16%, transparent); }
+.pipeline-port__kind.kind-text { color: var(--kind-text); background: color-mix(in srgb, var(--kind-text) 16%, transparent); }
+.pipeline-port__kind.kind-eeg { color: var(--kind-eeg); background: color-mix(in srgb, var(--kind-eeg) 16%, transparent); }
+.pipeline-port__kind.kind-lfp { color: var(--kind-lfp); background: color-mix(in srgb, var(--kind-lfp) 16%, transparent); }
+.pipeline-port__kind.kind-spike { color: var(--kind-spike); background: color-mix(in srgb, var(--kind-spike) 16%, transparent); }
+.pipeline-port__kind.kind-calcium { color: var(--kind-calcium); background: color-mix(in srgb, var(--kind-calcium) 16%, transparent); }
+
+/* React Flow adds these while a connection is being dragged; they are the
+   visual half of the `accepts` rule. */
+.react-flow__handle.connectingfrom,
+.react-flow__handle.valid {
+	box-shadow: 0 0 0 3px var(--accent);
+}
+
+.react-flow__handle-connecting:not(.react-flow__handle-valid) {
+	box-shadow: 0 0 0 3px var(--danger);
+}
+
+.react-flow__edge-path {
+	stroke-width: 1.6;
+}
+
+.react-flow__connection-path {
+	stroke: var(--ink-dim);
+}
+
+.react-flow__edge.kind-table .react-flow__edge-path { stroke: var(--kind-table); }
+.react-flow__edge.kind-series .react-flow__edge-path { stroke: var(--kind-series); }
+.react-flow__edge.kind-text .react-flow__edge-path { stroke: var(--kind-text); }
+.react-flow__edge.kind-eeg .react-flow__edge-path { stroke: var(--kind-eeg); }
+.react-flow__edge.kind-lfp .react-flow__edge-path { stroke: var(--kind-lfp); }
+.react-flow__edge.kind-spike .react-flow__edge-path { stroke: var(--kind-spike); }
+.react-flow__edge.kind-calcium .react-flow__edge-path { stroke: var(--kind-calcium); }
+.react-flow__edge.kind-any .react-flow__edge-path { stroke: var(--kind-any); }
+
+.react-flow__edge.selected .react-flow__edge-path {
+	stroke: var(--accent);
+	stroke-width: 2.25;
+	stroke-dasharray: 7 5;
+	animation: edge-flow 0.7s linear infinite;
+}
+
+.pipeline-edge.is-run-active .react-flow__edge-path {
+	stroke-dasharray: 7 5;
+	animation: edge-flow 0.8s linear infinite;
+}
+
+@keyframes edge-flow {
+	to {
+		stroke-dashoffset: -12;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.react-flow__edge.selected .react-flow__edge-path,
+	.pipeline-edge.is-run-active .react-flow__edge-path {
+		animation: none;
+	}
+
+	.pipeline-node.is-run-running {
+		animation: none;
+	}
+
+	.canvas__surface.is-rejecting .react-flow__handle-connecting:not(.react-flow__handle-valid) {
+		animation: none;
+	}
+}
+
+.react-flow__attribution {
+	background: transparent;
+	font-size: 9px;
+}
+
+.react-flow__minimap,
+.react-flow__controls {
+	background: var(--surface-raised);
+	border: 1px solid var(--line);
+	border-radius: 3px;
+	overflow: hidden;
+}
+
+.react-flow__minimap-mask {
+	fill: var(--minimap-mask);
+}
+
+.react-flow__controls-button {
+	border-bottom: 1px solid var(--line);
+	background: var(--surface-raised);
+	fill: var(--ink);
+	width: 22px;
+	height: 22px;
+}
+
+.react-flow__controls-button:hover {
+	background: color-mix(in srgb, var(--accent) 16%, var(--surface-raised));
+}
+
+.react-flow__background {
+	background: transparent;
+}
+
+/* ---- banners ------------------------------------------------------------ */
+
+.banner {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	max-width: 520px;
+	padding: 8px 12px;
+	border: 1px solid var(--line);
+	border-radius: 4px;
+	background: var(--surface-raised);
+	font-size: 11px;
+	line-height: 1.5;
+}
+
+.banner--error {
+	border-color: var(--danger);
+}
+
+.banner--warning {
+	border-color: var(--warning);
+}
+
+.banner__hint {
+	color: var(--ink-dim);
+}
+
+/* ---- fatal fallback ----------------------------------------------------- */
+
+.fatal {
+	padding: 24px;
+	font-family: var(--vscode-editor-font-family, monospace);
+	white-space: pre-wrap;
+}

@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        // Opens the AnalysisGUI repo root in the Extension Development Host so
+        // any .pipeline files in the project are available immediately.
+        "${workspaceFolder}/.."
+      ],
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "preLaunchTask": "${defaultBuildTask}"
+    }
+  ]
+}
